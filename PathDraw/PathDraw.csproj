@@ -102,7 +102,9 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RobotKitUI\CalibrateElement.cs" />
     <Compile Include="RobotKitUI\ColorWheel.cs" />
+    <Compile Include="RobotKitUI\Joystick.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -111,7 +113,13 @@
     <None Include="PathDraw_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\CalibrateWheel\btn_calibrate_up.tif" />
     <Content Include="Assets\ColorWheel\colorwheel.png" />
+    <Content Include="Assets\CalibrateWheel\gfx_calibrate-inner.png" />
+    <Content Include="Assets\CalibrateWheel\gfx_calibrate-outer.png" />
+    <Content Include="Assets\CalibrateWheel\gfx_calibrate-touch.png" />
+    <Content Include="Assets\DriveWheel\gfx_driveorb.tif" />
+    <Content Include="Assets\DriveWheel\gfx_joystick.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
