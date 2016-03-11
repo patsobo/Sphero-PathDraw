@@ -35,6 +35,10 @@ namespace PathDraw
         public MainPage()
         {
             this.InitializeComponent();
+
+            // let inkBoard be used with any input type
+            InkBoard.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse |
+                Windows.UI.Core.CoreInputDeviceTypes.Touch | Windows.UI.Core.CoreInputDeviceTypes.Pen;
         }
 
         /// <summary>
