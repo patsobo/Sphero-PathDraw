@@ -15,6 +15,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI;
+using Windows.UI.Input.Inking;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -29,12 +31,22 @@ namespace PathDraw
     {
         Sphero m_robot = null;
 
+        // Controls attritubutes of the InkBoard like color, size, etc.
+        InkDrawingAttributes attr = new InkDrawingAttributes();
+
         //! @brief  the color wheel to control m_robot color
         private ColorWheel m_colorwheel;
 
         public MainPage()
         {
             this.InitializeComponent();
+
+            attr.Color = Colors.Red;
+            attr.IgnorePressure = true;
+            attr.PenTip = PenTipShape.Circle;
+            attr.Size = new Size(10, 10);
+            //attr.PenTipTransform = System.Numerics.Matrix3x2.CreateRotation((float)(70 * Math.PI / 180));
+            InkBoard.InkPresenter.UpdateDefaultDrawingAttributes(attr);
 
             // let inkBoard be used with any input type
             InkBoard.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse |
@@ -80,7 +92,7 @@ namespace PathDraw
         //  just color wheel for now
         private void SetupControls()
         {
-            m_colorwheel = new ColorWheel(ColorPuck, m_robot);
+            m_colorwheel = new ColorWheel(ColorPuck, m_robot, InkBoard, attr);
         }
 
         //! @brief  shuts down the various sphero controls
