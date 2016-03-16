@@ -105,6 +105,7 @@
     <Compile Include="RobotKitUI\CalibrateElement.cs" />
     <Compile Include="RobotKitUI\ColorWheel.cs" />
     <Compile Include="RobotKitUI\Joystick.cs" />
+    <Compile Include="RobotKitUI\PathBoard.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -120,6 +121,7 @@
     <Content Include="Assets\CalibrateWheel\gfx_calibrate-touch.png" />
     <Content Include="Assets\DriveWheel\gfx_driveorb.tif" />
     <Content Include="Assets\DriveWheel\gfx_joystick.png" />
+    <Content Include="Assets\sphero.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

@@ -21,6 +21,7 @@ using Windows.UI.Input.Inking;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 using RobotKit;
+using PathDraw.RobotKitUI;
 
 namespace PathDraw
 {
@@ -37,6 +38,9 @@ namespace PathDraw
         //! @brief  the color wheel to control m_robot color
         private ColorWheel m_colorwheel;
 
+        // The special InkBoard
+        private PathBoard m_board;
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -45,8 +49,12 @@ namespace PathDraw
             attr.IgnorePressure = true;
             attr.PenTip = PenTipShape.Circle;
             attr.Size = new Size(10, 10);
+            
             //attr.PenTipTransform = System.Numerics.Matrix3x2.CreateRotation((float)(70 * Math.PI / 180));
             InkBoard.InkPresenter.UpdateDefaultDrawingAttributes(attr);
+
+            // testing out using a cursor;
+            //InkPresenterPredefinedConfiguration config = new InkPresenterPredefinedConfiguration();
 
             // let inkBoard be used with any input type
             InkBoard.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse |
@@ -93,12 +101,14 @@ namespace PathDraw
         private void SetupControls()
         {
             m_colorwheel = new ColorWheel(ColorPuck, m_robot, InkBoard, attr);
+            m_board = new PathBoard(InkBoard);
         }
 
         //! @brief  shuts down the various sphero controls
         private void ShutdownControls()
         {
             m_colorwheel = null;
+            m_board = null;
         }
 
         //! @brief  search for a robot to connect to
@@ -144,7 +154,6 @@ namespace PathDraw
         {
             Debug.WriteLine(string.Format("Connected to {0}", robot));
 
-            changeColor(255, 255, 255);
             SetupControls();
 
             // these two are probably useless for my app
@@ -157,11 +166,6 @@ namespace PathDraw
         {
             MessageDialog dialog = new MessageDialog("No Sphero Paired");
             //...
-        }
-
-        public void changeColor(int red, int green, int blue)
-        {
-            m_robot.SetRGBLED(red, green, blue);
         }
     }
 }
