@@ -121,6 +121,7 @@
     <Content Include="Assets\CalibrateWheel\gfx_calibrate-touch.png" />
     <Content Include="Assets\DriveWheel\gfx_driveorb.tif" />
     <Content Include="Assets\DriveWheel\gfx_joystick.png" />
+    <Content Include="Assets\playButton.png" />
     <Content Include="Assets\sphero.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />

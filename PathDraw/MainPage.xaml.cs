@@ -21,7 +21,6 @@ using Windows.UI.Input.Inking;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 using RobotKit;
-using PathDraw.RobotKitUI;
 
 namespace PathDraw
 {
@@ -100,8 +99,8 @@ namespace PathDraw
         //  just color wheel for now
         private void SetupControls()
         {
-            m_colorwheel = new ColorWheel(ColorPuck, m_robot, InkBoard, attr);
-            m_board = new PathBoard(InkBoard);
+            m_colorwheel = new ColorWheel(ColorPuck);
+            m_board = new PathBoard(m_robot, PathCursor, InkBoard, attr);
         }
 
         //! @brief  shuts down the various sphero controls

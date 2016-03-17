@@ -9,8 +9,6 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Input;
 using Windows.UI;
-using Windows.UI.Xaml.Controls; // for the InkCanvas
-using Windows.UI.Input.Inking;  // for the InkAttributes
 
 namespace PathDraw
 {
@@ -21,15 +19,6 @@ namespace PathDraw
 
         //! @brief	translate transform for the puck
         private TranslateTransform m_translateTransform;
-
-        //! @brief	sphero to control
-        private RobotKit.Sphero m_sphero;
-
-        // the canvas you are drawing the path on
-        private InkCanvas m_board;
-
-        // the attributes for the board (for changing the color)
-        private InkDrawingAttributes m_inkAttr;
 
         //! @brief  the initial point that we are referencing
         private Point m_initialPoint;
@@ -42,11 +31,8 @@ namespace PathDraw
          * @param	puck the puck to control with the joystick
          * @param	sphero the sphero to control
          */
-        public ColorWheel(FrameworkElement puck, RobotKit.Sphero sphero, InkCanvas board, InkDrawingAttributes inkAttr) {
-            m_sphero = sphero;
-            m_board = board;
-            m_inkAttr = inkAttr;
-
+        public ColorWheel(FrameworkElement puck)
+        {
             m_puckControl = puck;
             m_puckControl.PointerPressed += PointerPressed;
             m_puckControl.PointerMoved += PointerMoved;
@@ -61,9 +47,11 @@ namespace PathDraw
         }
 
         //! @brief  handle the user starting to drive
-        private void PointerPressed(object sender, PointerRoutedEventArgs args) {
+        private void PointerPressed(object sender, PointerRoutedEventArgs args)
+        {
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
-            if (pointer.Properties.IsLeftButtonPressed) {
+            if (pointer.Properties.IsLeftButtonPressed)
+            {
                 m_initialPoint = new Point(pointer.RawPosition.X - m_translateTransform.X, pointer.RawPosition.Y - m_translateTransform.Y);
                 args.Handled = true;
                 m_puckControl.CapturePointer(args.Pointer);
@@ -71,9 +59,11 @@ namespace PathDraw
         }
 
         //! @brief  handle the user driving
-        private void PointerMoved(object sender, PointerRoutedEventArgs args) {
+        private void PointerMoved(object sender, PointerRoutedEventArgs args)
+        {
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
-            if (pointer.Properties.IsLeftButtonPressed) {
+            if (pointer.Properties.IsLeftButtonPressed)
+            {
                 Point newPoint = pointer.RawPosition;
                 Point delta = new Point(
                     newPoint.X - m_initialPoint.X,
@@ -85,12 +75,13 @@ namespace PathDraw
 
                 ConstrainToParent();
 
-                SendRgbCommand();
+                //SendRgbCommand();
             }
         }
 
         //! @brief  constrains the joystick to its parent
-        private void ConstrainToParent() {
+        private void ConstrainToParent()
+        {
             FrameworkElement parent = m_puckControl.Parent as FrameworkElement;
             float radius = (float)Math.Min(parent.ActualWidth, parent.ActualHeight) / 2f;
 
@@ -99,7 +90,8 @@ namespace PathDraw
                 + m_translateTransform.Y * m_translateTransform.Y);
 
             float radiusSq = radius * radius;
-            if (distanceSq > radiusSq) {
+            if (distanceSq > radiusSq)
+            {
                 float length = (float)Math.Sqrt(distanceSq);
                 Point positionNorm = new Point(m_translateTransform.X / length, m_translateTransform.Y / length);
 
@@ -109,66 +101,15 @@ namespace PathDraw
         }
 
         //! @brief  handle the user completing driving
-        private void PointerReleased(object sender, PointerRoutedEventArgs args) {
-            SendRgbCommand();
-            SetInkColor();  // only need to send command to board when you leave the color wheel
+        private void PointerReleased(object sender, PointerRoutedEventArgs args)
+        {
+            //SendRgbCommand();
             m_puckControl.ReleasePointerCapture(args.Pointer);
             args.Handled = true;
         }
 
-        private void SetInkColor()
+        private Color ColorFromHSV(double hue, double saturation, double value)
         {
-            m_inkAttr.Color = getCurrentColor();
-            m_board.InkPresenter.UpdateDefaultDrawingAttributes(m_inkAttr);
-        }
-
-        // Gets the current selected color
-        private Color getCurrentColor() {
-            FrameworkElement parent = m_puckControl.Parent as FrameworkElement;
-            if (parent == null || m_sphero == null)
-            {
-                return Color.FromArgb(0, 0, 0, 0);  // just run a white color
-            }
-
-            Size size = new Size(parent.ActualWidth, parent.ActualHeight);
-
-            float x = (float)m_translateTransform.X;
-            float y = (float)m_translateTransform.Y;
-
-            x /= (float)size.Width * .5f;
-            y /= (float)size.Height * .5f;
-
-            float speed = x * x + y * y;
-            speed = (speed == 0) ? 0 : (float)Math.Sqrt(speed);
-            if (speed > 1f)
-            {
-                speed = 1f;
-            }
-
-            double rad = Math.Atan2((double)y, (double)x);
-            rad += Math.PI / 2.0;
-            double degrees = rad * 180.0 / Math.PI;
-            int degreesCapped = (((int)degrees) + 360) % 360;
-
-            return ColorFromHSV(degreesCapped, speed, 1.0);
-        }
-
-        /*!
-         * @brief	sends an rgb command to the sphero given the current translation
-         */
-        private void SendRgbCommand() {
-            Color RgbColor = getCurrentColor();
-            if (RgbColor == Color.FromArgb(0, 0, 0, 0)) return;
-
-            // Send RGB command and limit to 10 Hz
-            long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            if ((milliseconds - m_lastCommandSentTimeMs) > 100) {
-                m_sphero.SetRGBLED(RgbColor.R, RgbColor.G, RgbColor.B);
-                m_lastCommandSentTimeMs = milliseconds;
-            }
-        }
-
-        private Color ColorFromHSV(double hue, double saturation, double value) {
             int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
             double f = hue / 60 - Math.Floor(hue / 60);
 
