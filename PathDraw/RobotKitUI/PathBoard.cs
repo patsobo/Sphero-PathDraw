@@ -44,7 +44,7 @@ namespace PathDraw
         private Canvas m_board;
 
         // Controls color and pen width
-        InkDrawingAttributes m_attr;
+        ColorWheel m_colorwheel;
 
         // collects a number of points with corresponding colors
         List<Point> path;
@@ -55,15 +55,16 @@ namespace PathDraw
 
         private Windows.UI.Xaml.Shapes.Polyline inkStroke;
 
-        public PathBoard(RobotKit.Sphero sphero, FrameworkElement pathControl, Canvas board, InkDrawingAttributes attr)
+        public PathBoard(RobotKit.Sphero sphero, FrameworkElement pathControl, Canvas board, ColorWheel colorwheel)
         {
             Debug.WriteLine("INITIALIZING CANVAS...");
             m_sphero = sphero;
             m_pathControl = pathControl;
             m_board = board;
-            m_attr = attr;
+            m_colorwheel = colorwheel;
 
             path = new List<Point>();
+            colors = new List<Color>();
 
             timer = new DispatcherTimer();
             timer.Tick += timerTick;
@@ -109,7 +110,7 @@ namespace PathDraw
                 // initialize the ink stroke
                 inkStroke = new Windows.UI.Xaml.Shapes.Polyline()
                 {
-                    Stroke = new SolidColorBrush(Colors.Blue),
+                    Stroke = new SolidColorBrush(m_colorwheel.getCurrentColor()),
                     StrokeThickness = 5
                 };
                 inkStroke.Points.Add(pointer.Position);
@@ -147,7 +148,7 @@ namespace PathDraw
             {
                 path.Add(pointer.Position);
                 magDiff = 0;
-                //colors.Add()
+                colors.Add(m_colorwheel.getCurrentColor());
             }
 
             // draw the ink, and make sure you've pressed down firmly
@@ -194,6 +195,9 @@ namespace PathDraw
             //long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                 
             m_sphero.Roll(degreesCapped, speed);
+
+            Color color = colors[count];
+            m_sphero.SetRGBLED(color.R, color.G, color.B);
 
             //float x = (float)m_translateTransform.X;
             //float y = (float)m_translateTransform.Y;

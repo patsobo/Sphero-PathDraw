@@ -101,7 +101,7 @@ namespace PathDraw
         {
             Debug.WriteLine("Setting up controls...");
             m_colorwheel = new ColorWheel(ColorPuck);
-            m_board = new PathBoard(m_robot, PathCursor, InkBoard, attr);
+            m_board = new PathBoard(m_robot, PathCursor, InkBoard, m_colorwheel);
         }
 
         //! @brief  shuts down the various sphero controls

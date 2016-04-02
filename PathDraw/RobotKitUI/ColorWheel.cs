@@ -46,6 +46,38 @@ namespace PathDraw
             m_lastCommandSentTimeMs = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
 
+        // Gets the current selected color
+        public Color getCurrentColor()
+        {
+            FrameworkElement parent = m_puckControl.Parent as FrameworkElement;
+            if (parent == null)
+            {
+                return Color.FromArgb(0, 0, 0, 0);  // just run a white color
+            }
+
+            Size size = new Size(parent.ActualWidth, parent.ActualHeight);
+
+            float x = (float)m_translateTransform.X;
+            float y = (float)m_translateTransform.Y;
+
+            x /= (float)size.Width * .5f;
+            y /= (float)size.Height * .5f;
+
+            float speed = x * x + y * y;
+            speed = (speed == 0) ? 0 : (float)Math.Sqrt(speed);
+            if (speed > 1f)
+            {
+                speed = 1f;
+            }
+
+            double rad = Math.Atan2((double)y, (double)x);
+            rad += Math.PI / 2.0;
+            double degrees = rad * 180.0 / Math.PI;
+            int degreesCapped = (((int)degrees) + 360) % 360;
+
+            return ColorFromHSV(degreesCapped, speed, 1.0);
+        }
+
         //! @brief  handle the user starting to drive
         private void PointerPressed(object sender, PointerRoutedEventArgs args)
         {
