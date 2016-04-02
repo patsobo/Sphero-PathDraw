@@ -57,7 +57,6 @@ namespace PathDraw
 
         public PathBoard(RobotKit.Sphero sphero, FrameworkElement pathControl, Canvas board, ColorWheel colorwheel)
         {
-            Debug.WriteLine("INITIALIZING CANVAS...");
             m_sphero = sphero;
             m_pathControl = pathControl;
             m_board = board;
@@ -159,12 +158,17 @@ namespace PathDraw
 
         private void PointerReleased(object sender, PointerRoutedEventArgs args)
         {
+            Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
+
             m_pathControl.ReleasePointerCapture(args.Pointer);
+            inkStroke.Points.Add(pointer.Position);
             args.Handled = true;
+        }
 
-            timer.Start();  // Temp...this will get moved to the play button
-
-            inkStroke.Points.Add(args.GetCurrentPoint(null).Position);
+        // start the sphero actually moving
+        public void StartPathRun()
+        {
+            timer.Start();
         }
 
         /*!

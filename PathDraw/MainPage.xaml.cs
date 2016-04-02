@@ -31,9 +31,6 @@ namespace PathDraw
     {
         Sphero m_robot = null;
 
-        // Controls attritubutes of the InkBoard like color, size, etc.
-        InkDrawingAttributes attr = new InkDrawingAttributes();
-
         //! @brief  the color wheel to control m_robot color
         private ColorWheel m_colorwheel;
 
@@ -44,20 +41,12 @@ namespace PathDraw
         {
             this.InitializeComponent();
 
-            attr.Color = Colors.Red;
-            attr.IgnorePressure = true;
-            attr.PenTip = PenTipShape.Circle;
-            attr.Size = new Size(10, 10);
-            
-            //attr.PenTipTransform = System.Numerics.Matrix3x2.CreateRotation((float)(70 * Math.PI / 180));
-            //InkBoard.InkPresenter.UpdateDefaultDrawingAttributes(attr);
+            PlayButton.PointerReleased += StartSpheroMove;            
+        }
 
-            // testing out using a cursor;
-            //InkPresenterPredefinedConfiguration config = new InkPresenterPredefinedConfiguration();
-
-            // let inkBoard be used with any input type
-            //InkBoard.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse |
-            //    Windows.UI.Core.CoreInputDeviceTypes.Touch | Windows.UI.Core.CoreInputDeviceTypes.Pen;
+        private void StartSpheroMove(object sender, PointerRoutedEventArgs e)
+        {
+            m_board.StartPathRun();
         }
 
         /// <summary>
