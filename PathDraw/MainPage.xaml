@@ -9,7 +9,7 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-        <InkCanvas x:Name="InkBoard" />
+        <Canvas x:Name="InkBoard" />
         <Image x:Name="PathCursor" HorizontalAlignment="Center" Height="50" Margin="0,0,0,0" VerticalAlignment="Center" Width="50" Source="Assets/sphero.png"/>
         <Image x:Name="PlayButton" HorizontalAlignment="Left" Height="50" Margin="0,0,0,0" VerticalAlignment="Top" Width="50" Source="Assets/playButton.png"/>
 

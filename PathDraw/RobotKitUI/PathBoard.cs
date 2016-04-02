@@ -18,7 +18,7 @@ namespace PathDraw
     class PathBoard
     {
         // Keeps track of the path length for one delta between path nodes in list
-        private const float MAX_DIFF = 30;  // max difference in path nodesm, in pixels
+        private const float MAX_DIFF = 2f;  // max difference in path nodesm, in pixels
         private float magDiff;
 
         // For keeping track of points when writing to and reading from the path list
@@ -41,7 +41,7 @@ namespace PathDraw
         private TranslateTransform m_translateTransform;
 
         // the board being drawn on.
-        private InkCanvas m_board;
+        private Canvas m_board;
 
         // Controls color and pen width
         InkDrawingAttributes m_attr;
@@ -53,7 +53,9 @@ namespace PathDraw
         // cursor that controls the current path spot.  Can only draw when you're touching this element
         private FrameworkElement m_pathControl;
 
-        public PathBoard(RobotKit.Sphero sphero, FrameworkElement pathControl, InkCanvas board, InkDrawingAttributes attr)
+        private Windows.UI.Xaml.Shapes.Polyline inkStroke;
+
+        public PathBoard(RobotKit.Sphero sphero, FrameworkElement pathControl, Canvas board, InkDrawingAttributes attr)
         {
             Debug.WriteLine("INITIALIZING CANVAS...");
             m_sphero = sphero;
@@ -65,23 +67,15 @@ namespace PathDraw
 
             timer = new DispatcherTimer();
             timer.Tick += timerTick;
-            timer.Interval = new TimeSpan(0,0,0,1,0);   // 100 milliseconds, or 10 Hz
+            timer.Interval = new TimeSpan(0,0,0,0,20);   // 10 milliseconds, or 10 Hz
             count = 0;
 
             m_translateTransform = new TranslateTransform();
             m_pathControl.RenderTransform = m_translateTransform;
 
-            //m_board.AllowDrop = true;
-            //m_pathControl.CanDrag = true;
             m_pathControl.PointerMoved += PointerMoved;
             m_pathControl.PointerPressed += PointerPressed;
             m_pathControl.PointerReleased += PointerReleased;
-
-            m_board.IsTapEnabled = true;
-            m_board.IsHoldingEnabled = true;
-            m_board.InkPresenter.IsInputEnabled = true;
-            //m_board.ReleasePointerCapture();
-            //m_board.PointerCa
         }
 
         private void timerTick(object sender, object e)
@@ -107,22 +101,27 @@ namespace PathDraw
         //! @brief  handle the user trying to draw somethingt
         private void PointerPressed(object sender, PointerRoutedEventArgs args)
         {
-            Debug.WriteLine("POINTER PRESSED");
-
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
             if (pointer.Properties.IsLeftButtonPressed)
             {
                 initialPoint = new Point(pointer.RawPosition.X - m_translateTransform.X, pointer.RawPosition.Y - m_translateTransform.Y);
                 args.Handled = true;
                 m_pathControl.CapturePointer(args.Pointer);
+
+                // initialize the ink stroke
+                inkStroke = new Windows.UI.Xaml.Shapes.Polyline()
+                {
+                    Stroke = new SolidColorBrush(Colors.Blue),
+                    StrokeThickness = 5
+                };
+                inkStroke.Points.Add(pointer.Position);
+                m_board.Children.Add(inkStroke);
             }
         }
 
         //! @brief  handle the user driving
         private void PointerMoved(object sender, PointerRoutedEventArgs args)
         {
-            Debug.WriteLine("POINTER MOVED");
-
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
 
             // Move the path cursor
@@ -152,17 +151,21 @@ namespace PathDraw
                 magDiff = 0;
                 //colors.Add()
             }
+
+            // draw the ink, and make sure you've pressed down firmly
+            if (inkStroke != null) inkStroke.Points.Add(pointer.Position);
+
             previousPoint = pointer.Position;
         }
 
         private void PointerReleased(object sender, PointerRoutedEventArgs args)
         {
-            Debug.WriteLine("POINTER RELEASED");
-
             m_pathControl.ReleasePointerCapture(args.Pointer);
             args.Handled = true;
 
             timer.Start();  // Temp...this will get moved to the play button
+
+            inkStroke.Points.Add(args.GetCurrentPoint(null).Position);
         }
 
         /*!
@@ -186,13 +189,13 @@ namespace PathDraw
             float distance = calculateMagnitude(x, y);
             int degreesCapped = calculateDegrees(x, y);
 
-            float speed = .25f;
+            float speed = .25f;    // speed of 1.0 is 7 ft/sec
             if (distance < .5) speed = 0.0f;
 
             // Send roll commands and limit to 10 Hz
             //long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                 
-            m_sphero.Roll(degreesCapped, speed);   // TODO: Replace with speed var
+            m_sphero.Roll(degreesCapped, speed);
 
             //float x = (float)m_translateTransform.X;
             //float y = (float)m_translateTransform.Y;
