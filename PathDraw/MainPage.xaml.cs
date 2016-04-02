@@ -50,14 +50,14 @@ namespace PathDraw
             attr.Size = new Size(10, 10);
             
             //attr.PenTipTransform = System.Numerics.Matrix3x2.CreateRotation((float)(70 * Math.PI / 180));
-            InkBoard.InkPresenter.UpdateDefaultDrawingAttributes(attr);
+            //InkBoard.InkPresenter.UpdateDefaultDrawingAttributes(attr);
 
             // testing out using a cursor;
             //InkPresenterPredefinedConfiguration config = new InkPresenterPredefinedConfiguration();
 
             // let inkBoard be used with any input type
-            InkBoard.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse |
-                Windows.UI.Core.CoreInputDeviceTypes.Touch | Windows.UI.Core.CoreInputDeviceTypes.Pen;
+            //InkBoard.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse |
+            //    Windows.UI.Core.CoreInputDeviceTypes.Touch | Windows.UI.Core.CoreInputDeviceTypes.Pen;
         }
 
         /// <summary>
@@ -99,6 +99,7 @@ namespace PathDraw
         //  just color wheel for now
         private void SetupControls()
         {
+            Debug.WriteLine("Setting up controls...");
             m_colorwheel = new ColorWheel(ColorPuck);
             m_board = new PathBoard(m_robot, PathCursor, InkBoard, attr);
         }

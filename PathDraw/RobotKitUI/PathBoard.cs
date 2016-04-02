@@ -10,6 +10,8 @@ using Windows.UI.Xaml.Input;
 using Windows.Foundation;
 using System.Numerics;  // for the Vectors
 using Windows.UI;   // for color
+using System.Diagnostics;
+using Windows.UI.Xaml.Media;
 
 namespace PathDraw
 {
@@ -21,7 +23,10 @@ namespace PathDraw
 
         // For keeping track of points when writing to and reading from the path list
         private Point currentPoint;
-        private Point previousPoint;   
+        private Point previousPoint;
+
+        // For keeping track of path control cursor
+        private Point initialPoint; 
 
         private DispatcherTimer timer;
         private int count;  // iterates through the list when sending the roll commands
@@ -31,6 +36,9 @@ namespace PathDraw
 
         //! @brief  the last time a command was sent in milliseconds
         private long m_lastCommandSentTimeMs;
+
+        //! @brief	translate transform for the puck
+        private TranslateTransform m_translateTransform;
 
         // the board being drawn on.
         private InkCanvas m_board;
@@ -47,6 +55,7 @@ namespace PathDraw
 
         public PathBoard(RobotKit.Sphero sphero, FrameworkElement pathControl, InkCanvas board, InkDrawingAttributes attr)
         {
+            Debug.WriteLine("INITIALIZING CANVAS...");
             m_sphero = sphero;
             m_pathControl = pathControl;
             m_board = board;
@@ -56,12 +65,21 @@ namespace PathDraw
 
             timer = new DispatcherTimer();
             timer.Tick += timerTick;
-            timer.Interval = new TimeSpan(0,0,0,0,100);   // 100 milliseconds, or 10 Hz
+            timer.Interval = new TimeSpan(0,0,0,1,0);   // 100 milliseconds, or 10 Hz
             count = 0;
 
-            m_board.PointerMoved += PointerMoved;
-            m_board.PointerPressed += PointerPressed;
-            m_board.PointerReleased += PointerReleased;
+            m_translateTransform = new TranslateTransform();
+            m_pathControl.RenderTransform = m_translateTransform;
+
+            //m_board.AllowDrop = true;
+            //m_pathControl.CanDrag = true;
+            m_pathControl.PointerMoved += PointerMoved;
+            m_pathControl.PointerPressed += PointerPressed;
+            m_pathControl.PointerReleased += PointerReleased;
+
+            m_board.IsTapEnabled = true;
+            m_board.IsHoldingEnabled = true;
+            m_board.InkPresenter.IsInputEnabled = true;
             //m_board.ReleasePointerCapture();
             //m_board.PointerCa
         }
@@ -84,24 +102,43 @@ namespace PathDraw
             }
         }
 
+
+
         //! @brief  handle the user trying to draw somethingt
         private void PointerPressed(object sender, PointerRoutedEventArgs args)
         {
-            // when pressed, check to see if you're on the cursor.  If so, then allow drawing.
+            Debug.WriteLine("POINTER PRESSED");
 
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
             if (pointer.Properties.IsLeftButtonPressed)
             {
-                //m_initialPoint = new Point(pointer.RawPosition.X - m_translateTransform.X, pointer.RawPosition.Y - m_translateTransform.Y);
-                //args.Handled = true;
-                //m_puckControl.CapturePointer(args.Pointer);
+                initialPoint = new Point(pointer.RawPosition.X - m_translateTransform.X, pointer.RawPosition.Y - m_translateTransform.Y);
+                args.Handled = true;
+                m_pathControl.CapturePointer(args.Pointer);
             }
         }
 
         //! @brief  handle the user driving
         private void PointerMoved(object sender, PointerRoutedEventArgs args)
         {
+            Debug.WriteLine("POINTER MOVED");
+
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
+
+            // Move the path cursor
+            if (pointer.Properties.IsLeftButtonPressed)
+            {
+                Point newPoint = pointer.RawPosition;
+                Point delta = new Point(
+                    newPoint.X - initialPoint.X,
+                    newPoint.Y - initialPoint.Y);
+
+                m_translateTransform.X = delta.X;
+                m_translateTransform.Y = delta.Y;
+                args.Handled = true;
+            }
+
+            // update the path list
             if (previousPoint == null) previousPoint = pointer.Position;
 
             float x = (float)(pointer.Position.X - previousPoint.X);
@@ -120,6 +157,11 @@ namespace PathDraw
 
         private void PointerReleased(object sender, PointerRoutedEventArgs args)
         {
+            Debug.WriteLine("POINTER RELEASED");
+
+            m_pathControl.ReleasePointerCapture(args.Pointer);
+            args.Handled = true;
+
             timer.Start();  // Temp...this will get moved to the play button
         }
 
@@ -144,10 +186,13 @@ namespace PathDraw
             float distance = calculateMagnitude(x, y);
             int degreesCapped = calculateDegrees(x, y);
 
+            float speed = .25f;
+            if (distance < .5) speed = 0.0f;
+
             // Send roll commands and limit to 10 Hz
             //long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                 
-            m_sphero.Roll(degreesCapped, .25f);   // TODO: Replace with speed var
+            m_sphero.Roll(degreesCapped, speed);   // TODO: Replace with speed var
 
             //float x = (float)m_translateTransform.X;
             //float y = (float)m_translateTransform.Y;
