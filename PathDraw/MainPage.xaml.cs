@@ -44,6 +44,7 @@ namespace PathDraw
             PlayButton.PointerReleased += StartSpheroMove;            
         }
 
+        // Tells the program to make the sphero begin moving
         private void StartSpheroMove(object sender, PointerRoutedEventArgs e)
         {
             m_board.StartPathRun();

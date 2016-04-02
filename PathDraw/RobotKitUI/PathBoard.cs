@@ -67,7 +67,13 @@ namespace PathDraw
 
             timer = new DispatcherTimer();
             timer.Tick += timerTick;
-            timer.Interval = new TimeSpan(0,0,0,0,20);   // 10 milliseconds, or 10 Hz
+            timer.Interval = new TimeSpan(0,0,0,0,20);   // 20 milliseconds, or 10 Hz
+            
+            /*
+            TODO: timer interval should be based on speed of sphero, according to this 
+            equation: 3 / speed [milliseconds] in order to get approximately 1ft per 100 pixels conversion
+            */
+
             count = 0;
 
             m_translateTransform = new TranslateTransform();
@@ -76,8 +82,11 @@ namespace PathDraw
             m_pathControl.PointerMoved += PointerMoved;
             m_pathControl.PointerPressed += PointerPressed;
             m_pathControl.PointerReleased += PointerReleased;
+
+            m_lastCommandSentTimeMs = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
 
+        // The tick that sends the necessary movement and color command from the path and color lists, respectively
         private void timerTick(object sender, object e)
         {
             SendRollCommand();
@@ -96,13 +105,14 @@ namespace PathDraw
             }
         }
 
-        //! @brief  handle the user trying to draw somethingt
+        //! @brief  handle the user trying to draw something
         private void PointerPressed(object sender, PointerRoutedEventArgs args)
         {
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
             if (pointer.Properties.IsLeftButtonPressed)
             {
-                initialPoint = new Point(pointer.RawPosition.X - m_translateTransform.X, pointer.RawPosition.Y - m_translateTransform.Y);
+                // Position and RawPosition should be the same (since the Canvas covers the entire screen)
+                initialPoint = new Point(pointer.Position.X - m_translateTransform.X, pointer.Position.Y - m_translateTransform.Y);
                 args.Handled = true;
                 m_pathControl.CapturePointer(args.Pointer);
 
@@ -125,7 +135,7 @@ namespace PathDraw
             // Move the path cursor
             if (pointer.Properties.IsLeftButtonPressed)
             {
-                Point newPoint = pointer.RawPosition;
+                Point newPoint = pointer.Position;
                 Point delta = new Point(
                     newPoint.X - initialPoint.X,
                     newPoint.Y - initialPoint.Y);
@@ -202,13 +212,9 @@ namespace PathDraw
 
             Color color = colors[count];
             m_sphero.SetRGBLED(color.R, color.G, color.B);
-
-            //float x = (float)m_translateTransform.X;
-            //float y = (float)m_translateTransform.Y;
-
-            //m_lastHeading = degreesCapped;
         }
 
+        // a simple arithmetic function for calculating the magnitude of a given x and y
         private float calculateMagnitude (float x, float y)
         {
             float distance = x * x + y * y;
@@ -216,6 +222,7 @@ namespace PathDraw
             return distance;
         }
 
+        // a simple arithmetic function for calculating the degrees of a given x and y with right being 0 degrees
         private int calculateDegrees(float x, float y)
         {
             double rad = Math.Atan2((double)y, (double)x);
