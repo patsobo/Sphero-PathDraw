@@ -96,8 +96,6 @@ namespace PathDraw
             }
         }
 
-
-
         //! @brief  handle the user trying to draw somethingt
         private void PointerPressed(object sender, PointerRoutedEventArgs args)
         {
