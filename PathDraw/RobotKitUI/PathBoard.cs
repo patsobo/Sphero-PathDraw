@@ -21,6 +21,9 @@ namespace PathDraw
         private const float MAX_DIFF = 2f;  // max difference in path nodesm, in pixels
         private float magDiff;
 
+        // makes sure button is pressed, not hovering
+        private bool down = false;
+
         // For keeping track of points when writing to and reading from the path list
         private Point currentPoint;
         private Point previousPoint;
@@ -95,13 +98,19 @@ namespace PathDraw
             {
                 // Reset values
                 count = 0;
-                path.Clear();
+                //path.Clear();
                 timer.Stop();
+                m_translateTransform.X = 0;
+                m_translateTransform.Y = 0;
 
                 // Stop the sphero
                 path.Add(new Point(0, 0));
                 SendRollCommand();
-                path.Clear();
+                //path.Clear();
+
+                // reset color
+                //colors.Clear();
+                m_sphero.SetRGBLED(0, 0, 0);
             }
         }
 
@@ -112,6 +121,7 @@ namespace PathDraw
             if (pointer.Properties.IsLeftButtonPressed)
             {
                 // Position and RawPosition should be the same (since the Canvas covers the entire screen)
+                //initialPoint = new Point(m_pathControl.ActualWidth - m_translateTransform.X, m_pathControl.ActualHeight - m_translateTransform.Y);
                 initialPoint = new Point(pointer.Position.X - m_translateTransform.X, pointer.Position.Y - m_translateTransform.Y);
                 args.Handled = true;
                 m_pathControl.CapturePointer(args.Pointer);
@@ -125,11 +135,15 @@ namespace PathDraw
                 inkStroke.Points.Add(pointer.Position);
                 m_board.Children.Add(inkStroke);
             }
+
+            down = true;
         }
 
         //! @brief  handle the user driving
         private void PointerMoved(object sender, PointerRoutedEventArgs args)
         {
+            if (!down) return;
+
             Windows.UI.Input.PointerPoint pointer = args.GetCurrentPoint(null);
 
             // Move the path cursor
@@ -173,11 +187,16 @@ namespace PathDraw
             m_pathControl.ReleasePointerCapture(args.Pointer);
             inkStroke.Points.Add(pointer.Position);
             args.Handled = true;
+            down = false;
         }
 
         // start the sphero actually moving
         public void StartPathRun()
         {
+            // reset position of path controller to the start of path
+            m_translateTransform.X = 0;
+            m_translateTransform.Y = 0;
+
             timer.Start();
         }
 
@@ -195,6 +214,14 @@ namespace PathDraw
             else previousPoint = path.ElementAt(count - 1);
 
             // Luckily, the iterator DOES retain the order
+
+            // Move the path cursor
+            Point delta = new Point(
+                currentPoint.X - initialPoint.X,
+                currentPoint.Y - initialPoint.Y);
+
+            m_translateTransform.X = delta.X;
+            m_translateTransform.Y = delta.Y;
 
             float x = (float)(currentPoint.X - previousPoint.X);
             float y = (float)(currentPoint.Y - previousPoint.Y);

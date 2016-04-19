@@ -41,7 +41,7 @@ namespace PathDraw
         {
             this.InitializeComponent();
 
-            PlayButton.PointerReleased += StartSpheroMove;            
+            PlayButton.PointerReleased += StartSpheroMove;       
         }
 
         // Tells the program to make the sphero begin moving
